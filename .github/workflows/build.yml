@@ -1,0 +1,28 @@
+name: GarlicAI Binary Build
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+
+    - name: Build Binary
+      run: |
+        GOOS=linux GOARCH=amd64 go build -o garlic main.go
+
+    - name: Commit and Push Binary
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git add garlic
+        git commit -m "Auto-built Linux binary" || exit 0
+        git push
