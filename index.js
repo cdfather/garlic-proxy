@@ -6,12 +6,10 @@ app.use(express.json());
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-// Test için kök dizin
 app.get('/', (req, res) => {
     res.send("GarlicAI Proxy Server is Online!");
 });
 
-// Terminalden gelen isteklerin işlendiği kısım
 app.post('/api/chat', async (req, res) => {
     try {
         const { prompt } = req.body;
@@ -19,6 +17,7 @@ app.post('/api/chat', async (req, res) => {
             return res.status(400).json({ error: "Prompt is required." });
         }
 
+        // Model ismini 'gemini-1.5-flash' veya 'gemini-2.0-flash' yapıyoruz
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
             contents: prompt,
