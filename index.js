@@ -6,6 +6,12 @@ app.use(express.json());
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
+// Test için kök dizin
+app.get('/', (req, res) => {
+    res.send("GarlicAI Proxy Server is Online!");
+});
+
+// Terminalden gelen isteklerin işlendiği kısım
 app.post('/api/chat', async (req, res) => {
     try {
         const { prompt } = req.body;
