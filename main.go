@@ -12,7 +12,7 @@ import (
 )
 
 // DİKKAT: Render adresini buraya yazıp sonuna /api/chat ekle
-const proxyURL = "https://garlic-proxy-xxxx.onrender.com/api/chat"
+const proxyURL = "https://garlic-proxy.onrender.com/api/chat"
 
 type RequestBody struct {
  Prompt string `json:"prompt"`
