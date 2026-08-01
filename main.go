@@ -11,7 +11,7 @@ import (
  "time"
 )
 
-// BURAYI KENDİ RENDER URL'İN İLE DEĞİŞTİR:
+// Render adresin
 const proxyURL = "https://garlic-proxy.onrender.com/api/chat"
 
 type RequestBody struct {
@@ -25,7 +25,6 @@ type ResponseBody struct {
 // ANSI Color Codes
 const (
  ColorPurple = "\033[1;35m"
- ColorGreen = "\033[1;32m"
  ColorCyan = "\033[1;36m"
  ColorYellow = "\033[1;33m"
  ColorReset = "\033[0m"
@@ -58,22 +57,33 @@ func main() {
  reqData := RequestBody{Prompt: userPrompt}
  jsonData, _ := json.Marshal(reqData)
 
- client := http.Client{Timeout: 30 * time.Second}
- resp, err := client.Post(proxyURL, "application/json", bytes.NewBuffer(jsonData))
+ // HTTP Request oluşturma
+ req, err := http.NewRequest("POST", proxyURL, bytes.NewBuffer(jsonData))
  if err != nil {
-  fmt.Println("\n" + ColorPurple + "[GarlicAI]: " + ColorReset + "Connection Error! Could not reach the server.")
+  fmt.Printf("\n%s[GarlicAI Error]:%s Request creation failed: %v\n\n", ColorPurple, ColorReset, err)
+  os.Exit(1)
+ }
+
+ req.Header.Set("Content-Type", "application/json")
+ req.Header.Set("User-Agent", "GarlicAI-CLI/1.0")
+
+ client := http.Client{Timeout: 30 * time.Second}
+ resp, err := client.Do(req)
+ if err != nil {
+  // Bağlantı hatasının tam detayını ekrana basacak
+  fmt.Printf("\n%s[GarlicAI Network Error]:%s %v\n\n", ColorPurple, ColorReset, err)
   os.Exit(1)
  }
  defer resp.Body.Close()
 
  body, _ := io.ReadAll(resp.Body)
 
- var resData ResponseBody
- _ = json.Unmarshal(body, &resData)
-
  if resp.StatusCode == 200 {
+  var resData ResponseBody
+  _ = json.Unmarshal(body, &resData)
   fmt.Printf("\n%s[GarlicAI]:%s\n%s\n\n", ColorPurple, ColorReset, resData.Result)
  } else {
-  fmt.Printf("\n%s[GarlicAI Error]:%s Server failed to respond (Code: %d)\n\n", ColorPurple, ColorReset, resp.StatusCode)
+  // Sunucudan 200 dışında bir kod dönerse dönen ham cevabı basacak
+  fmt.Printf("\n%s[GarlicAI Server Error (%d)]:%s %s\n\n", ColorPurple, ColorReset, resp.StatusCode, string(body))
  }
 }
