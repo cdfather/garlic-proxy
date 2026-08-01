@@ -27,6 +27,7 @@ const (
  ColorPurple = "\033[1;35m"
  ColorCyan = "\033[1;36m"
  ColorYellow = "\033[1;33m"
+ ColorReset = "\033[0m"
 )
 
 func printBanner() {
