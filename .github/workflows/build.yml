@@ -4,6 +4,9 @@ on:
   push:
     branches: [ "main" ]
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -15,14 +18,17 @@ jobs:
       with:
         go-version: '1.21'
 
-    - name: Build Binary
+    - name: Build Binaries
       run: |
+        # Linux / VPS (x86_64) için
         GOOS=linux GOARCH=amd64 go build -o garlic main.go
+        # Termux / Android (ARM64) için
+        GOOS=linux GOARCH=arm64 go build -o garlic-arm64 main.go
 
-    - name: Commit and Push Binary
+    - name: Commit and Push Binaries
       run: |
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-        git add garlic
-        git commit -m "Auto-built Linux binary" || exit 0
+        git add garlic garlic-arm64
+        git commit -m "Auto-built Linux & ARM64 binaries" || exit 0
         git push
