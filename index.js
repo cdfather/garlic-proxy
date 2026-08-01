@@ -10,23 +10,23 @@ app.post('/api/chat', async (req, res) => {
     try {
         const { prompt } = req.body;
         if (!prompt) {
-            return res.status(400).json({ error: "Prompt gerekli." });
+            return res.status(400).json({ error: "Prompt is required." });
         }
 
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
             contents: prompt,
             config: {
-                systemInstruction: "Sen Linux terminalinde çalışan GarlicAI asistansın. Kısa, net ve yapıcı Türkçe cevaplar ver."
+                systemInstruction: "You are GarlicAI, a fast and helpful assistant running inside a Linux terminal. Provide clear, direct, concise, and accurate answers in English."
             }
         });
 
         res.json({ result: response.text });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: "Sunucu hatası oluştu." });
+        res.status(500).json({ error: "Internal server error." });
     }
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Sunucu ${PORT} portunda aktif.`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
