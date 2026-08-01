@@ -2,16 +2,17 @@ package main
 
 import (
  "bytes"
+ "context"
  "encoding/json"
  "fmt"
  "io"
+ "net"
  "net/http"
  "os"
  "strings"
  "time"
 )
 
-// Render adresin
 const proxyURL = "https://garlic-proxy.onrender.com/api/chat"
 
 type RequestBody struct {
@@ -22,12 +23,10 @@ type ResponseBody struct {
  Result string `json:"result"`
 }
 
-// ANSI Color Codes
 const (
  ColorPurple = "\033[1;35m"
  ColorCyan = "\033[1;36m"
  ColorYellow = "\033[1;33m"
- ColorReset = "\033[0m"
 )
 
 func printBanner() {
@@ -57,7 +56,6 @@ func main() {
  reqData := RequestBody{Prompt: userPrompt}
  jsonData, _ := json.Marshal(reqData)
 
- // HTTP Request oluşturma
  req, err := http.NewRequest("POST", proxyURL, bytes.NewBuffer(jsonData))
  if err != nil {
   fmt.Printf("\n%s[GarlicAI Error]:%s Request creation failed: %v\n\n", ColorPurple, ColorReset, err)
@@ -67,10 +65,28 @@ func main() {
  req.Header.Set("Content-Type", "application/json")
  req.Header.Set("User-Agent", "GarlicAI-CLI/1.0")
 
- client := http.Client{Timeout: 30 * time.Second}
+ // Android/Termux DNS çakışmasını aşmak için 1.1.1.1'e zorlama
+ transport := &http.Transport{
+  DialContext: (&net.Dialer{
+   Timeout: 10 * time.Second,
+   KeepAlive: 30 * time.Second,
+   Resolver: &net.Resolver{
+    PreferGo: true,
+    Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
+     d := net.Dialer{Timeout: 5 * time.Second}
+     return d.DialContext(ctx, "udp", "1.1.1.1:53")
+    },
+   },
+  }).DialContext,
+ }
+
+ client := http.Client{
+  Transport: transport,
+  Timeout: 30 * time.Second,
+ }
+
  resp, err := client.Do(req)
  if err != nil {
-  // Bağlantı hatasının tam detayını ekrana basacak
   fmt.Printf("\n%s[GarlicAI Network Error]:%s %v\n\n", ColorPurple, ColorReset, err)
   os.Exit(1)
  }
@@ -83,7 +99,6 @@ func main() {
   _ = json.Unmarshal(body, &resData)
   fmt.Printf("\n%s[GarlicAI]:%s\n%s\n\n", ColorPurple, ColorReset, resData.Result)
  } else {
-  // Sunucudan 200 dışında bir kod dönerse dönen ham cevabı basacak
   fmt.Printf("\n%s[GarlicAI Server Error (%d)]:%s %s\n\n", ColorPurple, ColorReset, resp.StatusCode, string(body))
  }
 }
